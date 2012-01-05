@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+	<head>
+		<link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">
+		<style>
+			body {
+				max-width: 320px;
+				width: 100%;
+				margin: 0 auto;
+			}
+		</style>
+	</head>
+	<body>
+	<h1>Password Generator Bookmarklet</h1>
+	<p>
+		I needed something like <a href="http://clipperz.com" target="_blank">Clipperz</a> password generator, just more accessible. I had to write it myself because the only thing I found were password generator which worked as a function of the current URL and a master password and are therefore bad because for all I know the hoster can see my password and maybe even deduct the algorithm.
+	</p>
+	<p>
+		So this generates totally random passwords with configurable charsets. There you go :)
+	</p>
+	<p>
+		<a id="link" class="btn success">Bookmarklet</a>
+	</p>
+	<p>
+		<a href="javascript:addJQuery(main);" class="btn danger">Test It</a>
+	</p>
+		<script id="bookmarklet">
+			function addJQuery(callback) {
+				if(window.jQuery) {
+					callback();
+					return;
+				}
+				var script = document.createElement('script');
+				script.setAttribute('src', 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js');
+				script.addEventListener('load', function() {
+					var script = document.createElement('script');
+					script.textContent = '(' + callback.toString() + ')();';
+					document.body.appendChild(script);
+				}, false);
+				document.body.appendChild(script);
+			}
+
+			var template = '<style>#pwgenpopup {z-index: 999;position: fixed;top: 0;left: 0;width: 100%;height: 120px;border: 1px solid black;background-color: white;color: black;text-align: center;}#pwgenpopup a {position: absolute; bottom: 0; right: 0; margin: 10px;}#pwgenpopup span {display: inline-block;text-align: left;}#pwgenpopup label {float: none;margin-right: 4px;}#pwgenpopup input[type=text] {width: 100%;}</style><div id="pwgenpopup"><a>&times;</a><span><div class="charset"><label><input type="checkbox" checked />Lowercase</label><label><input type="checkbox" checked />Uppercase</label><label><input type="checkbox" checked />Numbers</label><label><input type="checkbox" checked/>Symbols</label></div><div><label>Length: <input type="number" value="19" /></label><input type="button" value="Go" /></div><div><input type="text" /></div></span></div>';
+
+			var charsets = {
+				Lowercase: 'abcdefghijklmnopqrstuvwxyz',
+				Uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+				Numbers: '0123456789',
+				Symbols: '!@#$%^&*()_+-=.,;:?\\/<>[]{}',
+			};
+
+			function generatePassword(charset, len) {
+				var pw = '';
+				if(len <= 0) {
+					return '';
+				}
+				for(var i = 0; i < len; i++) {
+					pw += charset[Math.floor(Math.random()*charset.length)];
+				}
+				return pw;
+			}
+
+			function getCharset() {
+				var c = $('#pwgenpopup div.charset label');
+				var charset = '';
+				for(var i = 0; i < c.length; i++) {
+					if($(c[i]).find('input').prop('checked')) {
+						charset += charsets[$(c[i]).text()];
+					}
+				}
+				return charset;
+			}
+
+			function generate() {
+				var charset = getCharset() ;
+				var length = $('#pwgenpopup input[type=number]').val();
+				$('#pwgenpopup input[type=text]').val(generatePassword(charset, length));
+			}
+
+			function main() {
+				if($('#pwgenpopup').length <= 0) {
+					$(template).prependTo($('body'));
+					$('#pwgenpopup input').change(generate);
+					$('#pwgenpopup input[type=button]').click(generate);
+					$('#pwgenpopup > a').click(function() {
+						$('#pwgenpopup').remove();
+					});
+					generate();
+				}
+			}
+		</script>
+		<script>
+			var code = document.getElementById('bookmarklet').innerText;
+			document.getElementById('link').setAttribute('href', 'javascript:'+code+';addJQuery(main);');
+		</script>
+	</body>
+</html>
